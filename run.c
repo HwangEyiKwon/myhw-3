@@ -32,11 +32,11 @@ p_meta find_meta(p_meta *last, size_t size) {
   brk_address = sbrk(0); //get current brk_address
   free_space = 0;
  
-  fit_flag = WORST_FIT;
+//  fit_flag = WORST_FIT;
 
   switch(fit_flag){
     case FIRST_FIT:
-    {/*
+    {
 	while(brk_address >= index){
 //		index = (p_meta *)current_position;
 		if(index->free == 1){
@@ -51,7 +51,7 @@ p_meta find_meta(p_meta *last, size_t size) {
 		current_position += index->size + META_SIZE;
 		if(index->next == NULL) break;	
 		index = index->next;
-	}*/
+	}
       //FIRST FIT CODE
     }
     break;
@@ -136,8 +136,9 @@ void *m_malloc(size_t size) {
 	//there are free space
 	int spare = result->size - size - META_SIZE;
 	if(spare >= META_SIZE){
-		insertion = (p_meta *)(result + size);
-		insertion->size = result->size - size - META_SIZE;
+		int new_add = (int)result + size;
+		insertion = (p_meta *)(new_add);
+		insertion->size = spare;
 		result->size = size;
 		insertion->free = 1;
 		result->free = 0;
@@ -205,8 +206,10 @@ void m_free(void *ptr) {
 
   //if tail node
   if(free_list->next == NULL){
-	free_list->prev->next = NULL;
-	free_list->prev = NULL;
+	if(free_list->prev != NULL){
+		free_list->prev->next = NULL;
+		free_list->prev = NULL;
+	}
   }
 
   free_list->free = 1; 
@@ -216,5 +219,71 @@ void m_free(void *ptr) {
 
 void* m_realloc(void* ptr, size_t size)
 {
-  
+  p_meta dest;
+  int src_address = (int)ptr - META_SIZE;
+  p_meta src = (p_meta *)src_address;
+  p_meta insertion;
+  int return_address = ptr;
+  printf("src size = %d, size = %d\n",src->size, size);
+
+  if(size < src->size)
+  {	
+        int spare = src->size - size - META_SIZE;
+	if(spare >= 0){
+		int new_add = (int) src + size;
+		insertion = (p_meta *)(new_add);
+		insertion->size = spare;
+		src->size = size;
+		insertion->free = 1;
+		src->free = 0;
+		insertion->prev = src;
+		insertion->next = src->next;
+		src->next->prev = insertion;
+		src->next = insertion;
+	}
+	else src->size = size;
+
+  }
+  else{
+	
+	if((src->next != NULL && src->next->free == 1) && src->next->size > (size - src->size)){
+	 	int spare = src->next->size - (size - src->size) - META_SIZE;
+		printf("spare = %d\n", spare);
+		if(spare >= 0){
+			memset((void*)(src+src->size), 0, size - src->size);
+			int new_add2 = (int)src->next + (size - src->size);
+			insertion = (p_meta *)new_add2;
+			insertion->size = spare + META_SIZE;
+			insertion->free = 1;		
+			src->size = size;
+			insertion->prev = src;
+			insertion->next = src->next->next;
+			src->next->next->prev = insertion;
+			src->next = insertion;
+		}		
+		else{		
+			memset((void*)(src->next), 0, size - src->size);
+			src->next = src->next->next;
+			if(src->next->next != NULL) src->next->next->prev = src;
+			src->size = size;
+			printf("there are some unused space: %d\n", spare);
+		}
+			
+	}
+	else{
+		m_free(ptr);
+		dest = m_malloc(size);
+		memcpy(dest, ptr, size);
+		int return_address = dest;
+
+		/*
+		m_free(ptr);
+		dest = m_malloc(size);
+		memcpy(dest, ptr, src->size);
+		memset((void*)(dest+size), 0, size - src->size);
+		int return_address = dest;*/
+	}
+  }
+  return_address += META_SIZE;
+  return return_address;
 }
