@@ -7,7 +7,6 @@
 #define META_SIZE (sizeof(struct metadata) - 4)
 
 typedef struct metadata *p_meta;
-
 //Metadata
 struct metadata
 {
