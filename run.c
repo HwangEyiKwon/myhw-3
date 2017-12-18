@@ -210,6 +210,7 @@ void m_free(void *ptr) {
   //if tail node
   if(free_list->next == NULL){
 	if(free_list->prev != NULL){
+		brk((void*)free_list);
 		free_list->prev->next = NULL;
 		free_list->prev = NULL;
 	}
