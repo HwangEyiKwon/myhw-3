@@ -35,10 +35,7 @@ p_meta find_meta(p_meta *last, size_t size) {
   switch(fit_flag){
     case FIRST_FIT:
     {
-//	printf("fisrt_fit code!!\n");
-//	printf("fit_flag = %d\n", fit_flag);
 	while(brk_address >= index){
-//		index = (p_meta *)current_position;
 		if(index->free == 1){
 			if(index->size >= size){
 				index->free = 0;	
@@ -59,7 +56,6 @@ p_meta find_meta(p_meta *last, size_t size) {
     case BEST_FIT:
     {
 	for(int i =0; brk_address >= index; i++, size_arr_num++){
-//		index = (p_meta *)current_position;
 		if(index->free == 1){
 			if(index->size >= size){	
 				return_address = current_position;
@@ -92,7 +88,6 @@ p_meta find_meta(p_meta *last, size_t size) {
     case WORST_FIT:
     {
 	for(int i =0; brk_address >= index; i++, size_arr_num++){
-//		index = (p_meta *)current_position;
 		if(index->free == 1){
 			if(index->size >= size){	
 				return_address = current_position;
@@ -227,7 +222,6 @@ void* m_realloc(void* ptr, size_t size)
   p_meta src = (p_meta *)src_address;
   p_meta insertion;
   int return_address = ptr;
-//  printf("src size = %d, size = %d\n",src->size, size);
 
   if(size < src->size)
   {	
@@ -254,7 +248,6 @@ void* m_realloc(void* ptr, size_t size)
 	if((src->next != NULL && src->next->free == 1) && src->next->size > (size - src->size)){
 	 	int spare = src->next->size - (size - src->size) - META_SIZE;
 		if(size % 4 != 0) spare -= (4 - size % 4);
-//		printf("spare = %d\n", spare);
 		if(spare >= 0){
 			memset((void*)(src + src->size), 0, size - src->size);
 			int new_add2 = (int)src->next + (size - src->size);
@@ -282,13 +275,7 @@ void* m_realloc(void* ptr, size_t size)
 		dest = m_malloc(size);
 		memcpy(dest, ptr, size);
 		int return_address = dest;
-
-		/*
-		m_free(ptr);
-		dest = m_malloc(size);
-		memcpy(dest, ptr, src->size);
 		memset((void*)(dest+size), 0, size - src->size);
-		int return_address = dest;*/
 	}
   }
   return_address += META_SIZE;
